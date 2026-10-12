@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from core.constants import NUM_COLS
+from core.constants import NUM_COLS, DERIVED_COLS
 
 REQUIRED_COLS = NUM_COLS.copy()
 REQUIRED_COLS.append("wl_home")
@@ -46,3 +46,16 @@ def summarize(df: pd.DataFrame) -> dict:
     })
     return sozluk
 
+def add_feature(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    for c in DERIVED_COLS:
+        if c.startswith("reb"):
+            continue
+        df[c] = df[f"{c[:-5]}_home"] - df[f"{c[:-5]}_away"]
+        
+    df["reb_home"] = df["oreb_home"] + df["dreb_home"]
+    df["reb_away"] = df["oreb_away"] + df["dreb_away"]
+    df["reb_diff"] = df["reb_home"] - df["reb_away"]
+    
+    return df
+    

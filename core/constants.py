@@ -33,3 +33,16 @@ LABELS = {
     "pf": "Faul"
 }
 
+DERIVED_COLS = [
+    "fg_pct_diff",
+    "fg3_pct_diff",
+    "ft_pct_diff",
+    "ast_diff",
+    "stl_diff",
+    "blk_diff",
+    "tov_diff",
+    "pf_diff",
+    "reb_home",
+    "reb_away",
+    "reb_diff",
+]
