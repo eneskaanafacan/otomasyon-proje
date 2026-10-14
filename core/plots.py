@@ -4,6 +4,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from core.constants import WL_COLORS, LABELS
+import seaborn as sns
+import numpy as np
 
 def plot_result_counts(df: pd.DataFrame, ax: Axes):
     ozet_tablo = pd.crosstab(df["season_type"], df["wl_home"])
@@ -33,20 +35,48 @@ def plot_result_counts(df: pd.DataFrame, ax: Axes):
     ax.set_ylabel(("Maç sayısı"))
     ax.legend(["Mağlubiyet (L)", "Galibiyet (W)"])
     
+def plot_hist_by_result(df: pd.DataFrame, col: str, ax: Axes):
+    sns.histplot(
+        data=df,
+        x=col,
+        hue="wl_home",
+        stat="density",
+        common_norm=False,
+        element="step",
+        bins=30,
+        palette=WL_COLORS,
+        ax=ax
+    )
+    ax.set_xticks(np.arange(0.25, 0.75, 0.05))
+    etiket = LABELS.get(col, col)
+    ax.set_title(f"Sonuca Göre Dağılım: {etiket}")
+    ax.set_xlabel(etiket)
+    ax.set_ylabel("Yoğunluk (Density)")
+    
+def plot_box_by_result(df: pd.DataFrame, col: str, ax: Axes):
+    sns.boxplot(
+        data=df,
+        x="wl_home",
+        y=col,
+        order=["W", "L"],
+        palette=WL_COLORS,
+        ax=ax
+    )
+    ax.set_yticks(np.arange(0.25, 0.75, 0.05))
+    etiket = LABELS.get(col, col)
+    ax.set_title(f"Sonuca Göre Kutu Grafiği: {etiket}")
+    ax.set_xlabel("Maç Sonucu")
+    ax.set_ylabel(etiket)
+    ax.set_xticklabels(["Galibiyet (W)", "Mağlubiyet (L)"])
+    
 if __name__ == "__main__":
     from core.data_manager import load_file
-    
-    # 1. Gerçek veriyi yükle
-    df = load_file("data/nba_games_clean.csv")
-    
-    # 2. Test için bir figür ve boş bir eksen (ax) üret
-    fig, ax = plt.subplots(figsize=(8, 6))
-    
-    # 3. Yazdığın fonksiyonu çağır (tuvali fonksiyona paslıyoruz)
-    plot_result_counts(df, ax)
-    
-    # 4. İster ekranda gör, ister PNG olarak diske kaydet
-    plt.tight_layout()
-    plt.savefig("outputs/test_result_counts.png")  # outputs altına kaydeder
-    plt.show()  # Pencere açıp ekranda gösterir
 
+    df = load_file("data/nba_games_clean.csv")
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    plot_box_by_result(df, "fg_pct_home", ax)
+
+    plt.tight_layout()
+    plt.savefig("outputs/test_box_fg_pct.png")
+    print("Grafik kaydedildi: outputs/test_box_fg_pct.png")

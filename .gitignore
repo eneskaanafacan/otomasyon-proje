@@ -2,3 +2,6 @@
 __pycache__/
 outputs/
 data/app.db
+*.pyc
+outputs/*.png
+.pytest_cache/
