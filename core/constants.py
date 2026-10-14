@@ -46,3 +46,8 @@ DERIVED_COLS = [
     "reb_away",
     "reb_diff",
 ]
+
+WL_COLORS = {
+    "W": "#2ca02c",  # Galibiyet (Yeşil)
+    "L": "#d62728",  # Mağlubiyet (Kırmızı)
+}

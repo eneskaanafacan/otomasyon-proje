@@ -58,4 +58,21 @@ def add_feature(df: pd.DataFrame) -> pd.DataFrame:
     df["reb_diff"] = df["reb_home"] - df["reb_away"]
     
     return df
-    
+
+def filter_df(df: pd.DataFrame, season_type: str = "Tümü", result: str = "Tümü", ranges: dict = None) -> pd.DataFrame:
+    sonuc = df.copy()
+
+    if season_type != "Tümü":
+        sonuc = sonuc[sonuc["season_type"] == season_type]
+
+    if result != "Tümü":
+        sonuc = sonuc[sonuc["wl_home"] == result]
+
+    if ranges:
+        for sutun, aralik in ranges.items():
+            min_deger = aralik[0]
+            max_deger = aralik[1]
+            sonuc = sonuc[(sonuc[sutun] >= min_deger) & (sonuc[sutun] <= max_deger)]
+
+    return sonuc
+
