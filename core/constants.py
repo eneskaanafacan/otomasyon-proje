@@ -51,3 +51,8 @@ WL_COLORS = {
     "W": "#2ca02c",  # Galibiyet (Yeşil)
     "L": "#d62728",  # Mağlubiyet (Kırmızı)
 }
+
+HOME_AWAY_TEAM_COLORS = {
+    "H": "#1f77b4",  # Galibiyet (Yeşil)
+    "A": "#ff7f0e",  # Mağlubiyet (Kırmızı)
+}

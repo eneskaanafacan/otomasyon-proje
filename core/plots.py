@@ -3,7 +3,7 @@ import matplotlib
 matplotlib.use("Agg") 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from core.constants import WL_COLORS, LABELS
+from core.constants import WL_COLORS, LABELS, HOME_AWAY_TEAM_COLORS
 import seaborn as sns
 import numpy as np
 
@@ -69,14 +69,51 @@ def plot_box_by_result(df: pd.DataFrame, col: str, ax: Axes):
     ax.set_ylabel(etiket)
     ax.set_xticklabels(["Galibiyet (W)", "Mağlubiyet (L)"])
     
+def plot_home_vs_away(df: pd.DataFrame, stat: str, ax: Axes):
+    home = f"{stat}_home"
+    away = f"{stat}_away"
+        
+    sns.histplot(
+        data=df[home],
+        stat="density",
+        element="step",
+        fill=True,
+        alpha=0.3,
+        color=HOME_AWAY_TEAM_COLORS["H"],
+        label="Ev Sahibi",
+        ax=ax
+    )
+    
+    sns.histplot(
+        data=df[away],
+        stat="density",
+        element="step",
+        fill=True,
+        alpha=0.3,
+        color=HOME_AWAY_TEAM_COLORS["A"],
+        label="Deplasman",
+        ax=ax
+    )
+    
+    ax.legend()
+    etiket = LABELS.get(stat, stat)
+    ax.set_title(f"Ev Sahibi vs Deplasman {stat}")
+    ax.set_xlabel(stat)
+    ax.set_ylabel("Yoğunluk(Density)")
+    
 if __name__ == "__main__":
     from core.data_manager import load_file
 
+    # 1. Veriyi yükle
     df = load_file("data/nba_games_clean.csv")
 
+    # 2. Tuval ve eksen aç
     fig, ax = plt.subplots(figsize=(8, 6))
-    plot_box_by_result(df, "fg_pct_home", ax)
 
+    # 3. Kendi yazdığın fonksiyonu çağır (pts = points / sayı)
+    plot_home_vs_away(df, "ast", ax)
+
+    # 4. Kaydet
     plt.tight_layout()
-    plt.savefig("outputs/test_box_fg_pct.png")
-    print("Grafik kaydedildi: outputs/test_box_fg_pct.png")
+    plt.savefig("outputs/test_home_vs_away_pts.png")
+    print("Grafik kaydedildi: outputs/test_home_vs_away_pts.png")
