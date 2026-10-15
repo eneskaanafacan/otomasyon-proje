@@ -156,6 +156,22 @@ def plot_corr(df: pd.DataFrame, ax: Axes, annot: bool=False):
     ax.set_title("Isı Haritası")
     
     
+def plot_target_corr(df: pd.DataFrame, ax: Axes):
+    df_corr = df.copy()
+    df_corr = add_target(df_corr)
+    
+    cols = []
+    for c in NUM_COLS:
+        if c in df_corr.columns:
+            cols.append(c)
+    
+    target_corr = df_corr[cols].corrwith(df_corr["home_win"]).sort_values()
+    target_corr.plot(kind="barh", ax=ax, color="steelblue")
+    
+    ax.set_xticks(np.arange(-0.45, 0.50, 0.05))
+    ax.set_title("Özelliklerin Galibiyet ile Korelasyonu")
+    ax.set_xlabel("Pearson Korelasyon Katsayısı (r)")
+    
 if __name__ == "__main__":
     from core.data_manager import load_file
 
@@ -163,9 +179,9 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    # Isı haritasını test et
-    plot_corr(df, ax, annot=False)
+    # Hedef korelasyon grafiğini test et
+    plot_target_corr(df, ax)
 
     plt.tight_layout()
-    plt.savefig("outputs/test_heatmap.png")
-    print("Grafik kaydedildi: outputs/test_heatmap.png")
+    plt.savefig("outputs/test_target_corr.png")
+    print("Grafik kaydedildi: outputs/test_target_corr.png")
