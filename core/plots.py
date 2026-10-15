@@ -3,9 +3,10 @@ import matplotlib
 matplotlib.use("Agg") 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from core.constants import WL_COLORS, LABELS, HOME_AWAY_TEAM_COLORS
+from core.constants import WL_COLORS, LABELS, HOME_AWAY_TEAM_COLORS, NUM_COLS
 import seaborn as sns
 import numpy as np
+from core.data_manager import add_target
 
 def plot_result_counts(df: pd.DataFrame, ax: Axes):
     ozet_tablo = pd.crosstab(df["season_type"], df["wl_home"])
@@ -125,16 +126,46 @@ def plot_scatter(df: pd.DataFrame, x: str, y: str, ax: Axes, n: int = 3000):
     ax.set_xticks(np.arange(0.25, 0.75, 0.05))
     ax.plot([0.20, 0.70],[0.20, 0.70])    
     
+def plot_corr(df: pd.DataFrame, ax: Axes, annot: bool=False):
+    df_corr = df.copy()
+    df_corr = add_target(df_corr)
+    
+    cols = []
+    for c in NUM_COLS:
+        if c in df_corr.columns:
+            cols.append(c)
+    cols.append("home_win")
+    
+    corr_matrix = df_corr[cols].corr()
+    
+    sns.heatmap(
+        data=corr_matrix,
+        cmap="coolwarm",
+        center=0,
+        vmax=1,
+        vmin=-1,
+        annot=annot,
+        annot_kws={"size":5} if annot else None,
+        ax=ax
+    )
+    
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=90, fontsize=8)
+
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0, fontsize=8)
+
+    ax.set_title("Isı Haritası")
+    
+    
 if __name__ == "__main__":
     from core.data_manager import load_file
 
     df = load_file("data/nba_games_clean.csv")
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(10, 8))
 
-    # Önerilen çift: x = fg_pct_home, y = fg_pct_away
-    plot_scatter(df, "fg_pct_home", "fg_pct_away", ax)
+    # Isı haritasını test et
+    plot_corr(df, ax, annot=False)
 
     plt.tight_layout()
-    plt.savefig("outputs/test_scatter_fg_pct.png")
-    print("Grafik kaydedildi: outputs/test_scatter_fg_pct.png")
+    plt.savefig("outputs/test_heatmap.png")
+    print("Grafik kaydedildi: outputs/test_heatmap.png")
