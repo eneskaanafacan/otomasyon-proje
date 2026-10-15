@@ -101,19 +101,40 @@ def plot_home_vs_away(df: pd.DataFrame, stat: str, ax: Axes):
     ax.set_xlabel(stat)
     ax.set_ylabel("Yoğunluk(Density)")
     
+def plot_scatter(df: pd.DataFrame, x: str, y: str, ax: Axes, n: int = 3000):
+    sample_df = df.sample(min(n, len(df)), random_state=42)
+    
+    sns.scatterplot(
+        data=sample_df,
+        x=x,
+        y=y,
+        hue="wl_home",
+        palette=WL_COLORS,
+        alpha=0.4,
+        s=10,
+        ax=ax
+    )      
+    
+    etiket_x = LABELS.get(x, x)
+    etiket_y = LABELS.get(y, y)
+    ax.set_title(f"{etiket_x} vs {etiket_y}")
+    ax.set_xlabel(etiket_x)
+    ax.set_ylabel(etiket_y)
+    
+    ax.set_yticks(np.arange(0.25, 0.75, 0.05))
+    ax.set_xticks(np.arange(0.25, 0.75, 0.05))
+    ax.plot([0.20, 0.70],[0.20, 0.70])    
+    
 if __name__ == "__main__":
     from core.data_manager import load_file
 
-    # 1. Veriyi yükle
     df = load_file("data/nba_games_clean.csv")
 
-    # 2. Tuval ve eksen aç
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    # 3. Kendi yazdığın fonksiyonu çağır (pts = points / sayı)
-    plot_home_vs_away(df, "ast", ax)
+    # Önerilen çift: x = fg_pct_home, y = fg_pct_away
+    plot_scatter(df, "fg_pct_home", "fg_pct_away", ax)
 
-    # 4. Kaydet
     plt.tight_layout()
-    plt.savefig("outputs/test_home_vs_away_pts.png")
-    print("Grafik kaydedildi: outputs/test_home_vs_away_pts.png")
+    plt.savefig("outputs/test_scatter_fg_pct.png")
+    print("Grafik kaydedildi: outputs/test_scatter_fg_pct.png")

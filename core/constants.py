@@ -30,7 +30,9 @@ LABELS = {
     "stl": "Top çalma",
     "blk": "Blok",
     "tov": "Top kaybı",
-    "pf": "Faul"
+    "pf": "Faul",
+    "fg_pct_home": "Ev Sahibi Şut Yüzdesi",
+    "fg_pct_away": "Deplasman Şut Yüzdesi"
 }
 
 DERIVED_COLS = [
