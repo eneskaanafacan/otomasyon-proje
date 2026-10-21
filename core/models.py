@@ -3,6 +3,16 @@ from core.data_manager import add_target, add_feature
 from core.constants import NUM_COLS, HOME_COLS, AWAY_COLS, DERIVED_COLS
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
+from sklearn.pipeline import Pipeline
+
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    confusion_matrix,
+)
 
 from core.model_factories import (
     create_logistic_regression,
@@ -102,4 +112,41 @@ MODELS = {
         ]
     }
 }
+
+def train_and_evaluate(
+    model_name: str,
+    params: dict,
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_train: pd.Series,
+    y_test: pd.Series
+):
+    pipeline = MODELS[model_name]["factory"](**params)
+    pipeline.fit(X_train, y_train)
+    y_pred = pipeline.predict(X_test)
+    y_proba = pipeline.predict_proba(X_test)[:, 1]
+    y_train_pred = pipeline.predict(X_train)
+    
+    metrics = {
+        "train_accuracy": (accuracy_score(y_train, y_train_pred)),
+        "accuracy": (accuracy_score(y_test, y_pred)),
+        "precision": (precision_score(y_test, y_pred)),
+        "recall": (recall_score(y_test, y_pred)),
+        "f1": (f1_score(y_test, y_pred)),
+        "roc_auc": (roc_auc_score(y_test, y_proba)),
+    }
+    
+    cm = confusion_matrix(y_test, y_pred)
+    
+    return {
+        "pipeline": pipeline,
+        "metrics": metrics,
+        "y_test": y_test,
+        "y_pred": y_pred,
+        "y_proba": y_proba,
+        "cm": cm,
+        "feature_names": list(X_train.columns)
+    }
+
+
 
