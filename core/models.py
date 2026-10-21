@@ -4,6 +4,14 @@ from core.constants import NUM_COLS, HOME_COLS, AWAY_COLS, DERIVED_COLS
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
 
+from core.model_factories import (
+    create_logistic_regression,
+    create_knn,
+    create_decision_tree,
+    create_random_forest,
+    create_gradient_boosting
+)
+
 def prepare_xy(
     df: pd.DataFrame,
     feature_group: str="Tümü",
@@ -66,15 +74,32 @@ def get_baseline_score(
     dummy_clf.fit(X_train, y_train)
     return dummy_clf.score(X_test, y_test)
 
-if __name__ == "__main__":
-    from core.data_manager import load_file
-    
-    dataset = load_file("data/nba_games_clean.csv")
-    
-    X, y, feature_names = prepare_xy(dataset)
-    X_train, X_test, y_train, y_test = split_data(X,y)
-    print(f"X_train boyutu: {X_train.shape}, y_train boyutu: {y_train.shape}")
-    print(f"X_test boyutu: {X_test.shape}, y_test boyutu: {y_test.shape}")
+MODELS = {
+    "Logistic Regression": {
+        "factory": create_logistic_regression,
+        "params": [("C", 0.01, 10.0, 1.0, float)]
+    },
+    "KNN": {
+        "factory": create_knn,
+        "params": [("n_neighbors", 1, 50, 25, int)]
+    },
+    "Decision Tree": {
+        "factory": create_decision_tree,
+        "params": [("max_depth", 1, 20, 5, int)]
+    },
+    "Random Forest": {
+        "factory": create_random_forest,
+        "params": [
+            ("n_estimators", 10, 300, 200, int),
+            ("max_depth", 2, 20, 10, int)
+        ]
+    },
+    "Gradient Boosting": {
+        "factory": create_gradient_boosting,
+        "params": [
+            ("n_estimators", 10, 300, 100, int),
+            ("learning_rate", 0.01, 0.5, 0.1, float)
+        ]
+    }
+}
 
-    baseline_acc = get_baseline_score(X_train, y_train, X_test, y_test)
-    print(f"Baseline Accuracy (Dummy): {baseline_acc:.4f}")
