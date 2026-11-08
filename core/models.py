@@ -4,6 +4,7 @@ from core.constants import NUM_COLS, HOME_COLS, AWAY_COLS, DERIVED_COLS
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 from sklearn.metrics import (
     accuracy_score,
@@ -148,5 +149,35 @@ def train_and_evaluate(
         "feature_names": list(X_train.columns)
     }
 
+def compute_cross_val(
+    pipeline: Pipeline,
+    X: pd.DataFrame,
+    y: pd.Series,
+    cv_splits: int = 5,
+    random_state: int = 42,
+) -> tuple[float, float]:
+    cv = StratifiedKFold(
+        n_splits=cv_splits, shuffle=True, random_state=random_state
+    )
+    scores = cross_val_score(pipeline, X, y, cv=cv, scoring="accuracy")
+
+    mean_score = float(scores.mean())
+    std_score = float(scores.std())
+
+    return mean_score, std_score
 
 
+if __name__ == "__main__":
+    from core.data_manager import load_file
+
+    dataset = load_file("data/nba_games_clean.csv")
+    X, y, feature_names = prepare_xy(dataset)
+
+    log_reg_pipe = MODELS["Logistic Regression"]["factory"](C=1.0)
+
+    print("\n--- 5-Fold Cross Validation Hesaplanıyor (Logistic Regression) ---")
+    cv_mean, cv_std = compute_cross_val(log_reg_pipe, X, y, cv_splits=5)
+
+    print(f"CV Doğruluk Ortalaması: {cv_mean:.4f}")
+    print(f"CV Standart Sapması    : {cv_std:.4f}")
+    print(f"Skor Aralığı           : %{((cv_mean - cv_std)*100):.2f} - %{((cv_mean + cv_std)*100):.2f}")
