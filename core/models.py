@@ -186,24 +186,33 @@ def get_importance(result: dict, model_name: str) -> pd.DataFrame | None:
         "importance": importances
     })
 
-    # Mutlak büyüklüğe göre sırala (işareti bozmadan en etkilileri en üste al)
+    # Mutlak büyüklüğe göre sırala 
     df_importance["abs_importance"] = df_importance["importance"].abs()
     df_importance = df_importance.sort_values(by="abs_importance", ascending=False).drop(columns=["abs_importance"])
 
     return df_importance.reset_index(drop=True)
 
 
-if __name__ == "__main__":
-    from core.data_manager import load_file
+def predict_one(
+    pipeline: Pipeline,
+    feature_names: list[str],
+    values: dict,
+    default_means: dict | pd.Series | None = None,
+) -> tuple[float, int]:
 
-    dataset = load_file("data/nba_games_clean.csv")
-    X, y, feature_names = prepare_xy(dataset)
-    X_train, X_test, y_train, y_test = split_data(X, y)
+    row_data = {}
+    for feat in feature_names:
+        if feat in values:
+            row_data[feat] = values[feat]
+        elif default_means is not None and feat in default_means:
+            row_data[feat] = default_means[feat]
+        else:
+            row_data[feat] = 0.0
 
-    res_lr = train_and_evaluate("Logistic Regression", {"C": 1.0}, X_train, X_test, y_train, y_test)
-    df_imp_lr = get_importance(res_lr, "Logistic Regression")
-    
-    print("\n--- Logistic Regression En Önemli 6 Özellik ---")
-    print(df_imp_lr.head(6))
+    df_single = pd.DataFrame([row_data])[feature_names]
 
+    proba = float(pipeline.predict_proba(df_single)[0, 1])
+    pred = int(pipeline.predict(df_single)[0])
+
+    return proba, pred
  
