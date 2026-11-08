@@ -167,17 +167,43 @@ def compute_cross_val(
     return mean_score, std_score
 
 
+def get_importance(result: dict, model_name: str) -> pd.DataFrame | None:
+    clf = result["pipeline"].named_steps["clf"]
+    features = result["feature_names"]
+
+    if model_name == "Logistic Regression":
+        importances = clf.coef_[0]
+    elif model_name in ["Decision Tree", "Random Forest", "Gradient Boosting"]:
+        importances = clf.feature_importances_
+    elif model_name == "KNN":
+        print(f"Bilgi: {model_name} modeli için yerleşik özellik önemi desteklenmiyor.")
+        return None
+    else:
+        raise ValueError(f"Geçersiz model adı: {model_name}")
+
+    df_importance = pd.DataFrame({
+        "feature": features,
+        "importance": importances
+    })
+
+    # Mutlak büyüklüğe göre sırala (işareti bozmadan en etkilileri en üste al)
+    df_importance["abs_importance"] = df_importance["importance"].abs()
+    df_importance = df_importance.sort_values(by="abs_importance", ascending=False).drop(columns=["abs_importance"])
+
+    return df_importance.reset_index(drop=True)
+
+
 if __name__ == "__main__":
     from core.data_manager import load_file
 
     dataset = load_file("data/nba_games_clean.csv")
     X, y, feature_names = prepare_xy(dataset)
+    X_train, X_test, y_train, y_test = split_data(X, y)
 
-    log_reg_pipe = MODELS["Logistic Regression"]["factory"](C=1.0)
+    res_lr = train_and_evaluate("Logistic Regression", {"C": 1.0}, X_train, X_test, y_train, y_test)
+    df_imp_lr = get_importance(res_lr, "Logistic Regression")
+    
+    print("\n--- Logistic Regression En Önemli 6 Özellik ---")
+    print(df_imp_lr.head(6))
 
-    print("\n--- 5-Fold Cross Validation Hesaplanıyor (Logistic Regression) ---")
-    cv_mean, cv_std = compute_cross_val(log_reg_pipe, X, y, cv_splits=5)
-
-    print(f"CV Doğruluk Ortalaması: {cv_mean:.4f}")
-    print(f"CV Standart Sapması    : {cv_std:.4f}")
-    print(f"Skor Aralığı           : %{((cv_mean - cv_std)*100):.2f} - %{((cv_mean + cv_std)*100):.2f}")
+ 
